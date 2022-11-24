@@ -1,0 +1,45 @@
+/*un proceso almacenado que devuelva el total de los alumnos matriculados en un curso*/
+
+create or replace function matriculados(int)
+returns  varchar as $$
+	DECLARE 
+		datoingre alias for $1; datos RECORD;
+		cur_datos  cursor for SELECT 
+			docente.nombre as Nombre_Estudiante,
+			docente.apellido as Apellido_Estudiante,
+			docente.id_docente as id,
+			docente.rango_policial as Rango,
+			curso.ubicacion as Ubicacion,
+			curso.numero_estudiantes as Numero_Estudiantes,
+			aula.aula as Aula
+			FROM docente
+			inner join curso on curso.id_curso = curso.id_curso
+			inner join aula on aula.id_aula = curso.id_aula
+			where docente.id_docente=$1
+			group by docente.nombre, docente.apellido, docente.id_docente,
+			docente.rango_policial,curso.ubicacion, curso.numero_estudiantes, aula.aula;
+begin
+	OPEN cur_datos;
+		FETCh cur_datos INTO datos;
+		RAISE NOTICE 
+			'
+			DOCENTE: % 
+        DATOS DEL DOCENTE QUE IMPARTE ESE CURSO Y EL NUMERO DE ESTUDIANTES EN EL:
+			',
+			datos.Nombre_Estudiante;
+		while (found) loop 
+			RAISE NOTICE 
+			'
+			APELLIDO: %
+			UBICACION: % 
+			RANGO: % 
+			NUMEROESTUDIANTE: %
+			AULA: %
+			',
+			datos.Apellido_Estudiante, datos.Ubicacion,datos.Rango,
+			datos.Numero_Estudiantes, datos.Aula;
+			FETCh cur_datos INTO datos;
+		end loop;
+END;
+$$ LANGUAGE plpgsql;
+SELECT matriculados(2)
